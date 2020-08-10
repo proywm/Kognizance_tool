@@ -758,12 +758,13 @@ long long perf_mmap_read( void *our_mmap, int mmap_size,
 				for(i=0;i<nr;i++) {
 					memcpy(&ip,&data[offset],sizeof(long long));
 					if (!quiet) printf("\t\t ip[%d]: %llx\n",i,ip);
-				
+#if 0				
 					ContextFrame *contextFrame = new ContextFrame();
 					contextFrame->binary_addr = ip;
 					contextFrame->method_name = "";
 					contextFrame->source_file = "";
 					eventPtr->eventContext_host.push_back(contextFrame);
+#endif
 					offset+=8;
 				}
 			}

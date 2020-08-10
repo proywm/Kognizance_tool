@@ -1,4 +1,16 @@
 #include <iostream>
+#if 0
+#define _GNU_SOURCE
+#include <ucontext.h>
+#include <dlfcn.h>
+#include <signal.h>
+#include <inttypes.h>
+#include <string.h>
+#include <unistd.h>
+#include <stdlib.h>
+#endif
+#define UNW_LOCAL_ONLY
+#include <libunwind.h>
 
 //#include "agent/pythonAgent/myagent.hpp"
 #include "myagent.hpp"
@@ -30,6 +42,42 @@ void MyAgent::agent_getAgentContext(Event *event)
 {
 	event->eventContext_agent = event->eventContext_host;
 //      std::cout << "nativeAgent: agent_getCallchain" << std::endl;
+}
+
+
+void MyAgent::agent_retrieveBacktrace(Event *event, ucontext_t *context)
+{
+	unw_cursor_t cursor; unw_context_t uc;
+	unw_word_t ip, sp;
+
+	bool inSignalFrame = true; // Initially we are will observe signal frames
+
+  	unw_getcontext(&uc);
+  	unw_init_local(&cursor, &uc);
+  	while (unw_step(&cursor) > 0) {
+    		unw_get_reg(&cursor, UNW_REG_IP, &ip);
+    		unw_get_reg(&cursor, UNW_REG_SP, &sp);
+    	//	printf ("ip = %lx, sp = %lx\n", (long) ip, (long) sp);
+		if(!inSignalFrame)
+		{
+			//enter in the event
+			ContextFrame *contextFrame = new ContextFrame();
+                        contextFrame->binary_addr = ip;
+                        contextFrame->method_name = "";
+                        contextFrame->source_file = "";
+                        event->eventContext_host.push_back(contextFrame);
+		}
+		if(unw_is_signal_frame(&cursor))
+                {
+                        inSignalFrame = false;
+			//enter the precise ip received from PEBS device
+			ContextFrame *contextFrame = new ContextFrame();
+                        contextFrame->binary_addr = event->h_ip_addr;
+                        contextFrame->method_name = "";
+                        contextFrame->source_file = "";
+                        event->eventContext_host.push_back(contextFrame);
+                }
+  	}
 }
 
 void MyAgent::processEvent(Event *event)

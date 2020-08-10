@@ -59,7 +59,7 @@ void MyTool::tool_threadExit()
 
 void MyTool::tool_eventHandler(Event *event, Device * dev, int signum, siginfo_t *info, void *context)
 {
-	std::cout << "Within tool handler: Doing tool specific handling\n";
+//	std::cout << "Within tool handler: Doing tool specific handling\n";
         //do what you gotta do
 	switch(dev->getDeviceType())
         {
@@ -79,7 +79,18 @@ void MyTool::tool_eventHandler(Event *event, Device * dev, int signum, siginfo_t
 
 void MyTool::tool_PEBSEventHandler(Event *event, Device * dev, int signum, siginfo_t *info, void *context)
 {
-        std::cout << TOOLMSG_BEGIN << "Within tool handler: Doing tool specific handling\n" << TOOLMSG_END;
+	if (!event || (event && (event->data_addr == 0 || event->ip_addr == 0)))
+		return;
+
+
+       // std::cout << TOOLMSG_BEGIN << "Within tool handler: Doing tool specific handling: eventId " << event->eventId << "data address" << event->data_addr <<"\n"  << TOOLMSG_END;
+//        if(event->ip_addr < 0x400d910)
+	std::cout << "callstack ";
+//	std::cout <<  event->eventId << std::hex << " "<< event->data_addr << " "<< event->ip_addr << std::dec<< std::endl << std::endl; 
+	
+	for(auto iter = event->eventContext_host.rbegin(); iter != event->eventContext_host.rend(); iter++)
+		std::cout  << std::hex<< (*iter)->binary_addr << " " << std::dec;
+	std::cout << std::endl;
 //	PEBSDevice *pebsDev = (PEBSDevice*)dev;
 //	pebsDev->updateDSAddress(0, 0);
         //do what you gotta do

@@ -37,11 +37,12 @@ int PEBSDevice::registerThisDevice(struct perf_event_attr *attr)
 #ifdef PEBS_SAMPLING_PERIOD
                 attr->sample_period             = PEBS_SAMPLING_PERIOD;
 #else
-		attr->sample_period          	= 100003;
+		attr->sample_period          	= 1000003;
 #endif
 		attr->exclude_user             	= 0;
 		attr->exclude_kernel            = 1;
 		attr->exclude_guest             = 1;
+		attr->exclude_callchain_user    = 0;
 	        attr->disabled               	= 0; /* enabled */
 	}
 
@@ -51,7 +52,8 @@ int PEBSDevice::registerThisDevice(struct perf_event_attr *attr)
 		{
 //			attr->config                 = 0x1cd;
 #if defined PEBS_SAMPLING_L1_LOAD_MISS
-			attr->config                 = 0x5308D1; // L1 load miss
+			//attr->config                 = 0x5308D1; // L1 load miss
+			attr->config		     = 0x8d1; // perf stat -e mem_load_uops_retired.l1_miss -vvv ls  // for broadwell
 #elif defined PEBS_SAMPLING_LLC_LOAD_MISS
 			attr->config                 = 0x5320D1; // LLC load miss
 #else

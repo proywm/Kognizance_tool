@@ -38,7 +38,8 @@ void Device::dev_signal_handler(int signum, siginfo_t *info, void *context)
                 event->fixSkid = true;	//asking agent to fix skid
 //		std::cout << "Within device handler: BPDevice" << std::endl;
         }
-
+	
+	agent->agent_retrieveBacktrace(event, (ucontext_t*) context);
 	agent->processEvent(event);
 	
 	if(!agent->requestWillBeNotified)

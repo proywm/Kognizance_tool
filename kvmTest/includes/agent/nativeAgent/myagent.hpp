@@ -40,6 +40,7 @@ public:
         static MyAgent* Instance();
         void agent_getCallchain();
 	void agent_getAgentContext(Event *event);
+	void agent_retrieveBacktrace(Event *event, ucontext_t *context);
 	void processEvent(Event *event);
 	bool get_mem_access_length_and_type_address(void * ip, uint32_t *accessLen, AccessType *accessType, FloatType * floatType, void * context, void** address);
 	void * get_previous_instruction(void *ins, void **pip, void **excludeList, int numExcludes);

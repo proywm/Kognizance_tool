@@ -1,6 +1,8 @@
 
 Build:
 
+mkdir build_native
+
 Python Agent: cmake -DPYAGENT=TRUE ..
 Native Agent: cmake ..
 
@@ -16,6 +18,6 @@ KVM + PEBSBP : cmake -DKVMAGENT=TRUE -DSAMPLEPEBSBP=TRUE ..
 
 native + PEBSBP: cmake -DSAMPLEPEBSBP=TRUE ..
 	
+native + PEBS: cmake -DSAMPLEPEBS=TRUE ..
 
-
-export LD_PRELOAD=/home/probir/Downloads/test_python_mod/perform/build/libperform.so:/home/probir/Downloads/perform/dependencies/libmonitor/installDir/lib/libmonitor.so:$LD_PRELOAD
+export LD_PRELOAD=/home/Kognizance_tool/kvmTest/build_native/libperform.so:/home/Kognizance_tool/kvmTest/dependencies/libmonitor/installDir/lib/libmonitor.so:$LD_PRELOAD

@@ -72,6 +72,17 @@ find_package (Threads REQUIRED)
 
 find_library(LIBRT_LIBRARIES rt)
 
+#---------[ lunwind
+find_path(LIBUNWIND_INCLUDE_DIR libunwind.h
+		HINTS 
+		/usr/
+)
+
+find_library(LIBUNWIND_GENERIC_LIBRARY unwind)
+
+#--------[ ldl
+find_library(LIBDL_LIBRARY dl) 
+
 #----------[ python libs
 if (${PYAGENT})
 	find_package(PythonLibs REQUIRED)
@@ -88,6 +99,8 @@ include_directories(${PROJECT_SOURCE_DIR}/includes/agent)
 include_directories(${PROJECT_BINARY_DIR})
 include_directories(${LibMonitor_INCLUDE_DIR})
 include_directories(${XED_INCLUDE_DIR})
+include_directories(${LIBUNWIND_INCLUDE_DIR})
+
 
 
 set(SOURCES
@@ -189,7 +202,7 @@ endif()
 #---------------[ Client Tools
 
 #-----------------[ Load redundancy
-SET(LOAD_REDUNDANCY TRUE)
+#SET(LOAD_REDUNDANCY TRUE)
 #SET(DEAD_STORE TRUE)
 #SET(RED_STORE TRUE)
 
@@ -299,14 +312,15 @@ elseif(${DEAD_STORE})
         #add_definitions(-DPEBS_SAMPLING_LLC_LOAD_MISS)
         #add_definitions(-DPEBS_SAMPLING_L1_LOAD_MISS)
 else()
-
+        add_definitions(-DPEBS_SAMPLING_PERIOD=100003)
+	add_definitions(-DPEBS_SAMPLING_L1_LOAD_MISS)
 endif()
 
 #---------[ executable and shared libs
 #add_executable(perform ${SOURCES})
 add_library(perform SHARED ${SOURCES} ${AGENTSOURCE} ${TOOLSOURCE})
 
-TARGET_LINK_LIBRARIES(perform ${XED_LIBRARY} ${LIBMONITOR_LIBRARY} ${LIBRT_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} ${BFD_LIBRARY})
+TARGET_LINK_LIBRARIES(perform ${XED_LIBRARY} ${LIBMONITOR_LIBRARY} ${LIBRT_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} ${BFD_LIBRARY} ${LIBUNWIND_GENERIC_LIBRARY} ${LIBDL_LIBRARY})
 
 if (${PYAGENT})
 	TARGET_LINK_LIBRARIES(perform ${PYTHON_LIBRARIES})
