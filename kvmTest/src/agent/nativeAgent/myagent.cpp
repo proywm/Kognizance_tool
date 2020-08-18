@@ -51,32 +51,49 @@ void MyAgent::agent_retrieveBacktrace(Event *event, ucontext_t *context)
 	unw_word_t ip, sp;
 
 	bool inSignalFrame = true; // Initially we are will observe signal frames
+	long parent_context_ip = -1;
 
   	unw_getcontext(&uc);
   	unw_init_local(&cursor, &uc);
+	
   	while (unw_step(&cursor) > 0) {
-    		unw_get_reg(&cursor, UNW_REG_IP, &ip);
-    		unw_get_reg(&cursor, UNW_REG_SP, &sp);
+    	unw_get_reg(&cursor, UNW_REG_IP, &ip);
+    	unw_get_reg(&cursor, UNW_REG_SP, &sp);
     	//	printf ("ip = %lx, sp = %lx\n", (long) ip, (long) sp);
+		ContextFrame *contextFrame = new ContextFrame();
+
 		if(!inSignalFrame)
 		{
 			//enter in the event
-			ContextFrame *contextFrame = new ContextFrame();
-                        contextFrame->binary_addr = ip;
-                        contextFrame->method_name = "";
-                        contextFrame->source_file = "";
-                        event->eventContext_host.push_back(contextFrame);
+			//ContextFrame *contextFrame = new ContextFrame();
+            contextFrame->binary_addr = ip;
+            contextFrame->method_name = "";
+            contextFrame->source_file = "";
+            //event->eventContext_host.push_back(contextFrame);
 		}
+
 		if(unw_is_signal_frame(&cursor))
-                {
-                        inSignalFrame = false;
+        {
+        	inSignalFrame = false;
 			//enter the precise ip received from PEBS device
-			ContextFrame *contextFrame = new ContextFrame();
-                        contextFrame->binary_addr = event->h_ip_addr;
-                        contextFrame->method_name = "";
-                        contextFrame->source_file = "";
-                        event->eventContext_host.push_back(contextFrame);
-                }
+			//ContextFrame *contextFrame = new ContextFrame();
+            contextFrame->binary_addr = event->h_ip_addr;
+            contextFrame->method_name = "";
+            contextFrame->source_file = "";
+            //event->eventContext_host.push_back(contextFrame);
+        }
+
+		// if its from library, eliminate it. Also, eliminate recursion
+
+        void *fn_start = (void *)symbol->getStartAddress((long)ip);
+        
+		if((long)fn_start != -1 && !inSignalFrame && parent_context_ip != (long)ip)
+        {
+			event->eventContext_host.push_back(contextFrame);
+			parent_context_ip = long(ip);
+		}
+		else
+			delete contextFrame;
   	}
 }
 
